@@ -26,7 +26,7 @@ def entry_point(req):
     # dic[path_repuestos]  = download_from_gs(link_repuestos, ["Histórico", "Descripción"])   # ! ver la división
     # ! Me falta incidencias y recaudación
 
-    upload_to_gcp(dic)
+    # upload_to_gcp(dic)
 
     return "ETL ejecutado correctamente\n", 200
 
