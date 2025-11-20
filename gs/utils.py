@@ -1,13 +1,18 @@
 from google.oauth2.service_account import Credentials
 import pandas as pd
 import gspread
+import os
+
+
+# CREDS_JSON = os.getenv("GS_SERVICE_ACCOUNT_CREDS")
+CREDS_JSON = "creds.json"
 
 
 def download_from_gs(sheet_url, sheet_names=None):
 
     # Crear credenciales
     creds = Credentials.from_service_account_file(
-        'creds.json',
+        CREDS_JSON,
         scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
     )
 

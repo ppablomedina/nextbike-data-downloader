@@ -9,6 +9,7 @@ import time
 import glob
 import os
 from mail import get_code
+from nextbike.paths import link_login
 
 
 # creds = os.getenv("NEXTBIKE_CREDS")
@@ -45,7 +46,7 @@ def set_driver():
     # Timeout de carga de páginas
     driver.set_page_load_timeout(3000)
     # Timeout para scripts asíncronos (por si acaso)
-    # driver.set_script_timeout(3000)
+    driver.set_script_timeout(3000)
     # ⬆⬆⬆ Aumentar timeouts ⬆⬆⬆
 
     return driver, download_dir
@@ -76,10 +77,21 @@ def log_in(driver, url):
     driver.find_element(By.ID, "parameters[otp_code]").send_keys(verification_code)
     driver.find_element(By.ID, "login_post").click()                               
 
-def download_from_nextbike(url, driver, download_dir):
 
-    driver.get(url)
-    time.sleep(2)
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def safe_get(driver, url, timeout=10000):
+    """Abre una URL pero si la página tarda demasiado no rompe el script."""
+    try:
+        driver.set_page_load_timeout(timeout)
+        driver.get(url)
+    except TimeoutException: pass
+
+def download_from_nextbike(url):
+
+    safe_get(driver, url)
 
     start_date, end_date = get_dates()
 
@@ -94,16 +106,15 @@ def download_from_nextbike(url, driver, download_dir):
 
         except Exception: pass
 
-    # Momento justo antes de lanzar la descarga
     start_time = time.time()
 
-    try:
-        driver.find_element(By.ID, "parameters[export_csv]").click()
-        driver.find_element(By.ID, "queries_view_get").click()
-        
+    try: driver.find_element(By.ID, "parameters[export_csv]").click()
+    except Exception: pass
+    
+    try: driver.find_element(By.ID, "queries_view_get").click()
     except Exception: pass
 
-    timeout = 60000  # segundos
+    timeout = 600000  # segundos
     file_path = None
 
     for _ in range(timeout):
@@ -119,3 +130,8 @@ def download_from_nextbike(url, driver, download_dir):
             break
 
     return pd.read_csv(file_path, sep='\t', encoding='utf-8')
+
+
+driver, download_dir = set_driver()
+
+log_in(driver, link_login)
