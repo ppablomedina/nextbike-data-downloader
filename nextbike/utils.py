@@ -15,6 +15,8 @@ creds = os.getenv("NEXTBIKE_CREDS")
 NEXTBIKE_USER  = creds.split("\n")[0]
 NEXTBIKE_PASS  = creds.split("\n")[1]
 
+REQUEST_TIMEOUT = 400  # lo que necesitas que aguante
+
 def set_driver():    
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -38,16 +40,12 @@ def set_driver():
     service = Service(chromedriver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    # 👇 Aumentar el timeout del cliente HTTP de Selenium
+    # 👉 ESTE es el que realmente usa urllib3
     try:
-        # Selenium 4 suele exponer _client
-        driver.command_executor._client.timeout = 400
-    except Exception:
-        try:
-            # En algunas versiones / drivers es _conn
-            driver.command_executor._conn.timeout = 400
-        except Exception as e:
-            print("No se pudo cambiar el timeout HTTP de Selenium:", e)
+        driver.command_executor._client_config.timeout = REQUEST_TIMEOUT
+        print("HTTP timeout de Selenium:", driver.command_executor._client_config.timeout)
+    except Exception as e:
+        print("No se pudo cambiar _client_config.timeout:", e)
 
     # (opcional) permitir descargas en headless
     try:
@@ -59,6 +57,7 @@ def set_driver():
         print("No se pudo configurar setDownloadBehavior:", e)
 
     return driver, download_dir
+
 
 
 
@@ -91,8 +90,9 @@ def get_dates():
 
 REQUEST_TIMEOUT = 400  # lo que necesitas que aguante
 
+REQUEST_TIMEOUT = 400
+
 def safe_get(driver, url, timeout=REQUEST_TIMEOUT):
-    # asegurar que Selenium y el HTTP client usan algo parecido
     driver.set_page_load_timeout(timeout)
     try:
         driver.get(url)
@@ -100,6 +100,7 @@ def safe_get(driver, url, timeout=REQUEST_TIMEOUT):
         if url.endswith("410"):
             return
         raise Exception(f"La página {url} tardó más de {timeout} segundos en cargar.")
+
 
 
 
