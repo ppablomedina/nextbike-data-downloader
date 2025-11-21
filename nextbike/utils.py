@@ -15,7 +15,7 @@ creds = os.getenv("NEXTBIKE_CREDS")
 NEXTBIKE_USER  = creds.split("\n")[0]
 NEXTBIKE_PASS  = creds.split("\n")[1]
 
-REQUEST_TIMEOUT = 400  # lo que necesitas que aguante
+REQUEST_TIMEOUT = 400 
 
 def set_driver():    
     chrome_options = Options()
@@ -41,11 +41,7 @@ def set_driver():
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     # 👉 ESTE es el que realmente usa urllib3
-    try:
-        driver.command_executor._client_config.timeout = REQUEST_TIMEOUT
-        print("HTTP timeout de Selenium:", driver.command_executor._client_config.timeout)
-    except Exception as e:
-        print("No se pudo cambiar _client_config.timeout:", e)
+    driver.command_executor._client_config.timeout = REQUEST_TIMEOUT
 
     # (opcional) permitir descargas en headless
     try:
@@ -58,11 +54,8 @@ def set_driver():
 
     return driver, download_dir
 
-
-
-
-
 def log_in_nextbike(driver, url):
+    
     driver.get(url)
 
     driver.find_element(By.ID, "parameters[username]").send_keys(NEXTBIKE_USER)
@@ -78,6 +71,7 @@ def log_in_nextbike(driver, url):
 
 
 def get_dates():
+    
     today = date.today()
     last_day_prev_month = today.replace(day=1) - timedelta(days=1)
     first_day_prev_month = last_day_prev_month.replace(day=1)
@@ -87,29 +81,17 @@ def get_dates():
         last_day_prev_month.strftime("%Y-%m-%d 23:59")
     )                              
 
-
-REQUEST_TIMEOUT = 400  # lo que necesitas que aguante
-
-REQUEST_TIMEOUT = 400
-
 def safe_get(driver, url, timeout=REQUEST_TIMEOUT):
     driver.set_page_load_timeout(timeout)
-    try:
-        driver.get(url)
+    try: driver.get(url)
     except TimeoutException:
-        if url.endswith("410"):
-            return
+        if url.endswith("410"): return
         raise Exception(f"La página {url} tardó más de {timeout} segundos en cargar.")
-
-
-
 
 def download_from_nextbike(driver, download_dir, url):
 
-    if url.endswith("410"):
-        timeout = 5
-    else:
-        timeout = REQUEST_TIMEOUT
+    if url.endswith("410"): timeout = 5
+    else:                   timeout = REQUEST_TIMEOUT
         
     safe_get(driver, url, timeout)
 
@@ -142,7 +124,6 @@ def download_from_nextbike(driver, download_dir, url):
     if not file_path: raise RuntimeError("No se encontró ningún CSV generado por Nextbike")
 
     return pd.read_csv(file_path, sep='\t', encoding='utf-8')
-
 
 def run_nextbike_etl(url):
     driver, download_dir = set_driver()
