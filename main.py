@@ -39,7 +39,7 @@ def entry_point(req):
         # ¡Faltan incidencias y recaudación cuando los tengas!
 
         # 3) Subir todo a GCP
-        # upload_to_gcp(dic)
+        upload_to_gcp(dic)
 
         return "ETL ejecutado correctamente\n", 200
 
@@ -53,6 +53,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 def run():
     return entry_point(request)
+
 
 
 
